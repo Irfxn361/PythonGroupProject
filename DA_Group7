@@ -1,0 +1,57 @@
+import requests
+from scrapy.http.request import Request
+
+url = 'https://brickset.com/sets/year-2004'
+r = requests.get(url)
+print(r.text)
+
+print("status code:")
+print("\t*", r.status_code)
+
+h = requests.head(url)
+print("Header:")
+print("**********")
+for x in h.headers:
+    print("\t ", x, ".", h.headers[x])
+print("**********")
+
+headers = {
+    'User-Agent' : 'Mobile'
+}
+url2 = 'http://httpbin.org/headers'
+rh = requests.get(url2, headers=headers)
+print(rh.text)
+
+import scrapy
+
+
+class BrickSetSpider(scrapy.Spider):
+    name = 'brick_spider'
+    start_urls = ['https://brickset.com/sets/year-2004']
+
+    def start_requests(self):
+        headers= {'User-Agent': "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"}
+        for url in self.start_urls:
+            yield Request(url, headers=headers)
+    def parse(self, response):
+        SET_SELECTOR = '.set'
+        for brickset in response.css(SET_SELECTOR):
+
+            NAME_SELECTOR = 'h1 ::text'
+            PIECES_SELECTOR = './/dl[dt/text() = "Pieces"]/dd/a/text()'
+            MINIFIGS_SELECTOR = './/dl[dt/text() = "Minifigs"]/dd[2]/a/text()'
+            IMAGE_SELECTOR = 'img ::attr(src)'
+            yield {
+                'name': brickset.css(NAME_SELECTOR).extract_first(),
+                'pieces': brickset.xpath(PIECES_SELECTOR).extract_first(),
+                'minifigs': brickset.xpath(MINIFIGS_SELECTOR).extract_first(),
+                'image': brickset.css(IMAGE_SELECTOR).extract_first(),
+            }
+
+        NEXT_PAGE_SELECTOR = '.next a ::attr(href)'
+        next_page = response.css(NEXT_PAGE_SELECTOR).extract_first()
+        if next_page:
+            yield scrapy.Request(
+                response.urljoin(next_page),
+                callback=self.parse
+            )
