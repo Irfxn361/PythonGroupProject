@@ -33,6 +33,7 @@ class BrickSetSpider(scrapy.Spider):
         headers= {'User-Agent': "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"}
         for url in self.start_urls:
             yield Request(url, headers=headers)
+
     def parse(self, response):
         SET_SELECTOR = '.set'
         for brickset in response.css(SET_SELECTOR):
