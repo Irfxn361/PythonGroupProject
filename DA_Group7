@@ -36,7 +36,7 @@ class BrickSetSpider(scrapy.Spider):
 
     def parse(self, response):
         SET_SELECTOR = '.set'
-        for 2004 in response.css(SET_SELECTOR):
+        for brickset in response.css(SET_SELECTOR):
 
             NAME_SELECTOR = 'h1 ::text'
             PIECES_SELECTOR = './/dl[dt/text() = "Pieces"]/dd/a/text()'
